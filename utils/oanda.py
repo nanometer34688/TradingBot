@@ -142,6 +142,7 @@ class Oanda:
     
     def get_cash_risk(self, risk_perc=1):
         account_value = self.get_account_value()
+        print("account_value", account_value)
         return float(account_value) * risk_perc
     
     def get_current_price(self, instrument="NAS100_USD"):
@@ -398,7 +399,7 @@ class Oanda:
         else:
             units = self.lot_size * trade_type
 
-        units = int(float(self.format_units(units)))
+        units = int(float(self.format_units(units)))/10
 
         formatted_tp = self.format_prices(self.tp) 
         formatted_sl = self.format_prices(self.sl) 

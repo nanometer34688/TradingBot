@@ -42,8 +42,8 @@ class SilverBullet():
                                     "symbol":self.instrument,
                                     "price":float(fvg["price"])}
                     self.bullish_trade = True
-                    fixed_trade = self.fix_stop_loss(tradeDetails)
-                    self.set_pending_order(fixed_trade)
+                    tradeDetails = self.fix_stop_loss(tradeDetails)
+                    self.set_pending_order(tradeDetails)
 
                 elif "SELL" == fvg["type"] and not self.bearish_trade:
                     tradeDetails = {"type":"SELL",
@@ -51,25 +51,30 @@ class SilverBullet():
                                     "symbol":self.instrument,
                                     "price":float(fvg["price"])}
                     self.bearish_trade = True
-                    fixed_trade = self.fix_stop_loss(tradeDetails)
-                    self.set_pending_order(fixed_trade)
+                    tradeDetails = self.fix_stop_loss(tradeDetails)
+                    self.set_pending_order(tradeDetails)
 
     def fix_stop_loss(self, trade_details):
         price = trade_details["price"]
         sl = trade_details["StopLoss"]
-        if abs(price - sl) < 3:
+        sl_diff =  abs(price - sl)
+        print("sl_diff", sl_diff)
+        if sl_diff < 3:
+            print("BEFORE:", trade_details)
+            print("Adjusting SL")
             if trade_details["type"] == "BUY":
-                trade_details["StopLoss"] = price + 3
+                trade_details["StopLoss"] = float(price - 3)
             else:
-                trade_details["StopLoss"] = price - 3
+                trade_details["StopLoss"] = float(price + 3)
+            print("AFTER:", trade_details)
         return trade_details
     
     def set_pending_order(self, tradeDetails):
         ret = self.oanda.calculate_trade(tradeDetails=tradeDetails, trade_order_type="LIMIT")
         print(ret)
         try:
+            ret = self.discord.send_message(str(ret)) # SEND DISCORD MESSAGE
             ret = self.discord.send_message(str(tradeDetails)) # SEND DISCORD MESSAGE
-            print(ret)
         except Exception as e:
             print("DISCORD ERROR: ", e)
         return ret        
